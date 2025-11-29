@@ -82,7 +82,7 @@ class _TaskPageState extends State<TaskPage> {
             label: Text('New Tasks', style: TextStyle(fontSize: 20)),
             style: TextButton.styleFrom(
               foregroundColor: Colors.white,
-              backgroundColor: Colors.white12,
+              backgroundColor: Colors.white10,
             ),
           ),
           SizedBox(width: 20),
