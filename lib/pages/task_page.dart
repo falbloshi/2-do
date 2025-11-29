@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:two_do/pages/new_task_page.dart';
 
 class TaskPage extends StatefulWidget {
   const TaskPage({super.key});
@@ -67,6 +68,25 @@ class _TaskPageState extends State<TaskPage> {
       appBar: AppBar(
         title: const Text('My To Dos'),
         backgroundColor: Colors.red,
+        actions: [
+          TextButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (context) => const NewTaskPage(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.mode_edit, size: 25),
+            label: Text('New Tasks', style: TextStyle(fontSize: 20)),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.white12,
+            ),
+          ),
+          SizedBox(width: 20),
+        ],
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(8),
@@ -155,12 +175,19 @@ class NoteCard extends StatelessWidget {
               ),
             ),
             key: Key(item[noteIndex]),
-            //key: Key(item + DateTime.now().microsecondsSinceEpoch.toString()),
             onDismissed: (direction) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
+                  behavior: SnackBarBehavior.floating,
+                  width: 300.0,
+                  backgroundColor: Colors.white,
                   duration: Duration(milliseconds: 1200),
-                  content: Text('Finished "$item"'),
+                  content: Center(
+                    child: Text(
+                      'Finished "$item"',
+                      style: TextStyle(color: Colors.black87),
+                    ),
+                  ),
                 ),
               );
               return;
