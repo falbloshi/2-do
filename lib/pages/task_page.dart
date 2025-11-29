@@ -16,7 +16,7 @@ class _TaskPageState extends State<TaskPage> {
       'Agreed on new marketing strategy.',
       'Follow-up: Contact vendor X.',
     ],
-    ['Travel Checklist', 'Passport', 'Tickets', 'Chargers'],
+    ['Travel Checklist', 'Passport', 'Tickets', 'Chargers', 'Food'],
   ];
 
   void deleteNote(int index) {
@@ -148,14 +148,28 @@ class NoteCard extends StatelessWidget {
           ],
         ),
         children: items.map((item) {
-          return ListTile(
-            leading: const Icon(Icons.circle, size: 8),
-            title: Text(item),
-            trailing: IconButton(
-              icon: const Icon(Icons.close, size: 18),
-              onPressed: () => onDeleteItem(noteIndex, items.indexOf(item)),
+          return Dismissible(
+            background: Container(
+              decoration: BoxDecoration(
+                color: Color.fromARGB(255, 230, 90, 125),
+              ),
             ),
-            dense: true,
+            key: Key(item[noteIndex]),
+            //key: Key(item + DateTime.now().microsecondsSinceEpoch.toString()),
+            onDismissed: (direction) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  duration: Duration(milliseconds: 1200),
+                  content: Text('Finished "$item"'),
+                ),
+              );
+              return;
+            },
+            child: ListTile(
+              leading: const Icon(Icons.circle, size: 8),
+              title: Text(item),
+              dense: true,
+            ),
           );
         }).toList(),
       ),
