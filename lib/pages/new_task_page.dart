@@ -119,17 +119,19 @@ class _NewTaskPageState extends State<NewTaskPage> {
     final appColor = isEditing ? Colors.green[400] : Colors.blueAccent;
     final appTitle = isEditing
         ? 'Editing ${titleController.text}'
-        : 'New to do List';
+        : 'New Tasks';
+
+    final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom != 0;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(appTitle),
+        title: Text(appTitle, style: TextStyle(fontSize: 18)),
         backgroundColor: appColor,
         actions: [
           TextButton.icon(
             onPressed: validateAndSaveForm,
-            icon: const Icon(Icons.save_as_rounded, size: 25),
-            label: Text('Save', style: TextStyle(fontSize: 20)),
+            icon: const Icon(Icons.save_as_rounded, size: 24),
+            label: Text('Save', style: TextStyle(fontSize: 16)),
             style: TextButton.styleFrom(
               foregroundColor: Colors.white,
               backgroundColor: Colors.white10,
@@ -145,8 +147,9 @@ class _NewTaskPageState extends State<NewTaskPage> {
         tasksController: tasksController,
       ),
 
-      floatingActionButton: widget.taskIndex == null
-          ? FloatingActionButton.extended(
+      floatingActionButton: (widget.taskIndex == null && !isKeyboardOpen)
+          ? FloatingActionButton(
+              mini: true,
               onPressed: () {
                 setState(() {
                   titleController.clear();
@@ -156,9 +159,9 @@ class _NewTaskPageState extends State<NewTaskPage> {
                 });
                 showSnack('Draft cleared');
               },
-              icon: Icon(Icons.clear_all),
-              label: Text('Clear Draft'),
               backgroundColor: Colors.red[400],
+              tooltip: 'Clear Draft',
+              child: const Icon(Icons.clear_all, size: 24),
             )
           : null,
     );
@@ -179,39 +182,42 @@ class EntryForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(28),
-      child: Column(
-        children: [
-          TextField(
-            controller: titleController,
-            decoration: InputDecoration(labelText: 'Title'),
-          ),
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Container(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          children: [
+            TextField(
+              controller: titleController,
+              decoration: InputDecoration(labelText: 'Title'),
+            ),
 
-          SizedBox(height: 28),
+            SizedBox(height: 28),
 
-          TextField(
-            controller: descController,
-            decoration: InputDecoration(labelText: 'Description (Optional)'),
-          ),
+            TextField(
+              controller: descController,
+              decoration: InputDecoration(labelText: 'Description (Optional)'),
+            ),
 
-          SizedBox(height: 56),
+            SizedBox(height: 56),
 
-          TextFormField(
-            controller: tasksController,
-            minLines: 3,
-            maxLines: null,
-            decoration: InputDecoration(
-              border: UnderlineInputBorder(),
-              hintText: 'Write your to dos here. \n- \n- \n- ',
-              hintStyle: TextStyle(
-                fontSize: 16,
-                fontStyle: FontStyle.italic,
-                color: Colors.grey,
+            TextFormField(
+              controller: tasksController,
+              minLines: 3,
+              maxLines: null,
+              decoration: InputDecoration(
+                border: UnderlineInputBorder(),
+                hintText: 'Write your to dos here. \n- \n- \n- ',
+                hintStyle: TextStyle(
+                  fontSize: 16,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.grey,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

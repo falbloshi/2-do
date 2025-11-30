@@ -57,7 +57,7 @@ class _TaskPageState extends State<TaskPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My To Dos'),
+        title: const Text('My To Dos', style: TextStyle(fontSize: 18)),
         backgroundColor: Colors.red,
         actions: [
           TextButton.icon(
@@ -69,8 +69,8 @@ class _TaskPageState extends State<TaskPage> {
                 ),
               );
             },
-            icon: const Icon(Icons.add_rounded, size: 25),
-            label: const Text('New Tasks', style: TextStyle(fontSize: 18)),
+            icon: const Icon(Icons.add_rounded, size: 24),
+            label: const Text('New Tasks', style: TextStyle(fontSize: 16)),
             style: TextButton.styleFrom(
               foregroundColor: Colors.white,
               backgroundColor: Colors.white10,
