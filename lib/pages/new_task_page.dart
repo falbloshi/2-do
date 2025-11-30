@@ -1,7 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/adapters.dart';
+
+class DraftManager {
+  static String? draftTitle;
+  static String? draftDesc;
+  static String? draftTasks;
+
+  static void saveDraft(String title, String desc, String tasks) {
+    draftTitle = title;
+    draftDesc = desc;
+    draftTasks = tasks;
+  }
+
+  static void clearDraft() {
+    draftTitle = null;
+    draftDesc = null;
+    draftTasks = null;
+  }
+}
 
 class NewTaskPage extends StatefulWidget {
-  const NewTaskPage({super.key});
+  final int? taskIndex;
+
+  const NewTaskPage({super.key, this.taskIndex});
 
   @override
   State<NewTaskPage> createState() => _NewTaskPageState();
@@ -9,20 +30,104 @@ class NewTaskPage extends StatefulWidget {
 
 class _NewTaskPageState extends State<NewTaskPage> {
   final titleController = TextEditingController();
-  final taskController = TextEditingController();
+  final descController = TextEditingController();
+  final tasksController = TextEditingController();
+
+  late final Box tasksBox = Hive.box('tasksBox');
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.taskIndex != null) {
+      final list = (tasksBox.getAt(widget.taskIndex!) as List).cast<String>();
+
+      titleController.text = list[0];
+      descController.text = list[1];
+      tasksController.text = list.sublist(2).join('\n');
+    } else {
+      titleController.text = DraftManager.draftTitle ?? '';
+      descController.text = DraftManager.draftDesc ?? '';
+      tasksController.text = DraftManager.draftTasks ?? '';
+    }
+  }
+
+  void showSnack(String msg, {Colors? color}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        width: 400,
+        backgroundColor: Colors.green[600],
+        duration: Duration(milliseconds: 2500),
+        content: Center(
+          child: Text(msg, style: TextStyle(color: Colors.yellow[100])),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    if (widget.taskIndex == null) {
+      DraftManager.saveDraft(
+        titleController.text,
+        descController.text,
+        tasksController.text,
+      );
+    }
+    super.dispose();
+  }
+
+  void validateAndSaveForm() {
+    final isEditing = widget.taskIndex != null;
+
+    if (titleController.text.isEmpty) {
+      return showSnack('Title is empty');
+    }
+    if (tasksController.text.isEmpty) {
+      return showSnack('To do list is empty');
+    }
+
+    final tasks = tasksController.text
+        .split('\n')
+        .where((t) => t.trim().isNotEmpty)
+        .toList();
+
+    final emptyDesc = descController.text.trim().isEmpty
+        ? ''
+        : descController.text.trim();
+
+    final newNote = <String>[
+      titleController.text.trim(),
+      emptyDesc,
+      ...tasks.map((e) => e.toString().trim()),
+    ];
+
+    if (isEditing) {
+      tasksBox.putAt(widget.taskIndex!, newNote);
+      showSnack('"${titleController.text}" has been updated!');
+    } else {
+      tasksBox.add(newNote);
+      showSnack('"${titleController.text}" has been saved!');
+      DraftManager.clearDraft();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.taskIndex != null;
+    final appColor = isEditing ? Colors.green[400] : Colors.blueAccent;
+    final appTitle = isEditing
+        ? 'Editing ${titleController.text}'
+        : 'New to do List';
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('To Do Editor'),
-        backgroundColor: Colors.blueAccent,
+        title: Text(appTitle),
+        backgroundColor: appColor,
         actions: [
           TextButton.icon(
-            onPressed: () {
-              final newNote = taskController.text.split('\n');
-              newNote.insert(0, titleController.text);
-              print(newNote);
-            },
+            onPressed: validateAndSaveForm,
             icon: const Icon(Icons.save_as_rounded, size: 25),
             label: Text('Save', style: TextStyle(fontSize: 20)),
             style: TextButton.styleFrom(
@@ -33,22 +138,43 @@ class _NewTaskPageState extends State<NewTaskPage> {
           SizedBox(width: 20),
         ],
       ),
+
       body: EntryForm(
         titleController: titleController,
-        taskController: taskController,
+        descController: descController,
+        tasksController: tasksController,
       ),
+
+      floatingActionButton: widget.taskIndex == null
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                setState(() {
+                  titleController.clear();
+                  descController.clear();
+                  tasksController.clear();
+                  DraftManager.clearDraft();
+                });
+                showSnack('Draft cleared');
+              },
+              icon: Icon(Icons.clear_all),
+              label: Text('Clear Draft'),
+              backgroundColor: Colors.red[400],
+            )
+          : null,
     );
   }
 }
 
 class EntryForm extends StatelessWidget {
   final TextEditingController titleController;
-  final TextEditingController taskController;
+  final TextEditingController descController;
+  final TextEditingController tasksController;
 
   const EntryForm({
     super.key,
     required this.titleController,
-    required this.taskController,
+    required this.descController,
+    required this.tasksController,
   });
 
   @override
@@ -61,18 +187,27 @@ class EntryForm extends StatelessWidget {
             controller: titleController,
             decoration: InputDecoration(labelText: 'Title'),
           ),
-          SizedBox(height: 48),
+
+          SizedBox(height: 28),
+
+          TextField(
+            controller: descController,
+            decoration: InputDecoration(labelText: 'Description (Optional)'),
+          ),
+
+          SizedBox(height: 56),
+
           TextFormField(
-            controller: taskController,
+            controller: tasksController,
             minLines: 3,
             maxLines: null,
             decoration: InputDecoration(
               border: UnderlineInputBorder(),
-              hintText: 'Write your tasks here. \n1.\n2.\n3.',
+              hintText: 'Write your to dos here. \n- \n- \n- ',
               hintStyle: TextStyle(
                 fontSize: 16,
                 fontStyle: FontStyle.italic,
-                color: Colors.grey, // change this to whatever fits
+                color: Colors.grey,
               ),
             ),
           ),
